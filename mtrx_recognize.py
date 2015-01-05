@@ -10,6 +10,28 @@ import operator as op
 import subprocess
 import Queue
 
+def get_char((x,y,w,h)):
+    curr_segment = im[y: y+h, x: x+w]
+    pic_counter = 0
+    curr_char = ""
+    filename = "curr_char_" + str(pic_counter) + ".png"
+    pic_counter += 1
+    cv2.imwrite(filename, curr_segment)
+
+    # FNULL = open(os.devnull, 'w')
+    tess_path = "tesseract -psm 10 " + filename  + " output nobatch matrix"
+    subprocess.call(tess_path, shell=True)
+    f = open('output.txt', 'r')
+    for line in f:
+        curr_char += line.strip()
+        
+    return curr_char
+    
+
+def rectify_lines(unrectified):
+    
+
+
 
 im = cv2.imread(str(sys.argv[1]).strip())
 im3 = im.copy()
@@ -75,23 +97,25 @@ for b in braces:
     curr += 1
     x_lag, y_lag, w_lag, h_lag = b
 
+# Rectify the braces and dteremine the character
 braces = sorted(braces, key=lambda x : (x[1], x[0]))
 print "\n<braces> post rect\n"
 for b in braces:
     # if b[1]>200 and b[1]<220:
+    b.append(get_char(b))
     print str(b) + " " + str(np.divide(float(b[3]),float(b[2])))
 
 
-x_left,y_left,w_left,h_left = braces[0]
-x_right,y_right,w_right,h_right = braces[1]
-
-width = (x_right + w_right) - (x_left + w_left)
-height = h_left
-
-print str(width) + " " + str(height)
-print type(x_left+width)
-print type(y_left+height)
-print "len: " + str(len(contours))
+# x_left,y_left,w_left,h_left = braces[0]
+# x_right,y_right,w_right,h_right = braces[1]
+#
+# width = (x_right + w_right) - (x_left + w_left)
+# height = h_left
+#
+# print str(width) + " " + str(height)
+# print type(x_left+width)
+# print type(y_left+height)
+# print "len: " + str(len(braces))
 # bounding box for region of single matrix
 # cv2.rectangle(im,(x_left+w_left,y_left),(x_left+width,y_left+height),(0,0,255),1)
 
@@ -99,63 +123,122 @@ print "len: " + str(len(contours))
 '''
 Do OCR on the segmented images
 '''
-
-# x_last, y_last, w_last, h_last = None,None,None,None
+x_last, y_last, w_last, h_last = -1,-1,-1,-1
 matrix_string = ""
-curr_char = ""
+working_elem = ""
+working_line = ""
 counter = 0
 pic_counter = 0
-left_bounds = Queue.Queue()
-right_bounds = Queue.Queue()
+
+entered = False
+
+left_bounds = [(x,y,w,h,c) for (x,y,w,h,c) in braces if c is ']']
+right_bounds = [(x,y,w,h,c) for (x,y,w,h,c) in braces if c is '[']
+
+if lef
+
+
+
+x_l, y_l = -1,-1
+x_r, y_r = -1,-1
+
+print left_bounds
+print right_bounds
 
 # while ungrouped:
-
-for b in braces:
-    x, y, w, h = b
-
-    curr_segment = im[y: y+h, x: x+w]
-    filename = "curr_char_" + str(pic_counter) + ".png"
-    pic_counter += 1
-    cv2.imwrite(filename, curr_segment)
-
-    # FNULL = open(os.devnull, 'w')
-    tess_path = "tesseract -psm 10 " + filename  + " output nobatch matrix"
-    subprocess.call(tess_path, shell=True)
-    f = open('output.txt', 'r')
-    
-    for line in f:
-        curr_char += line.strip()
-    # print "not quite: " + str(num)
-    
-    if curr_char in ("[]"):
-        print "bound"
-        if curr_char == "[":
-            left_bounds.put('[')
-        else:
-            right_bounds.put(']')
-    
-    print str(curr_char)
-    matrix_string += str(curr_char)
-    
-    # if num.isdigit() and counter > 1:
-    #     print "reaches"
-    #     if counter != 0 and y >= y_last + 65:
-    #         matrix_string += "; " + str(num) + " "
-    #         print num
-    #         num = ""
-    #     elif counter == 0 or 1.2*(x_last + w_last) <  x:
-    #         matrix_string += str(num) + " "
-    #         print num
-    #         num = ""
-    # else:
-    #     matrix_string += str(num)
-    
-    x_last, y_last, w_last, h_last = b
-    counter += 1
-    curr_char = ""
-    subprocess.call('rm output.txt', shell=True)
-    
-print "mtrx: "  + matrix_string
+#
+# # for b in braces:
+#     x, y, w, h = ungrouped[0]
+#     # print ungrouped
+#
+#     curr_char = ""
+#     curr_segment = im[y: y+h, x: x+w]
+#     filename = "curr_char_" + str(pic_counter) + ".png"
+#     pic_counter += 1
+#     cv2.imwrite(filename, curr_segment)
+#
+#     # FNULL = open(os.devnull, 'w')
+#     tess_path = "tesseract -psm 10 " + filename  + " output nobatch matrix"
+#     subprocess.call(tess_path, shell=True)
+#     f = open('output.txt', 'r')
+#
+#     for line in f:
+#         curr_char += line.strip()
+#     # print "not quite: " + str(num)
+#     print curr_char
+#     if curr_char in ("[]"):
+#         # print "bound"
+#         if curr_char == "[":
+#             left_bounds.append(ungrouped.pop(0))
+#             # if x_l == -1:
+#             #     x_l,_,_,_ = left_bounds.pop(0)
+#         elif curr_char == "]":
+#             right_bounds.append(ungrouped.pop(0))
+#             # if x_r == -1:
+#             #     x_r,_,_,_  = right_bounds.pop(0)
+#
+#     print "bounds: " + str(x_l) + " " + str(x_r)
+#
+#     if curr_char in ("0123456789")  and x_l < x < x_r:
+#         entered = True
+#         # print "here"
+#         # print "curr_char: " + curr_char
+#         # print "working elem: " + working_elem
+#         # print "working line: " + working_line
+#         print "CURR CHAR: " + curr_char + " <<y last: " + str(y_last) + ", " + "y curr: " + str(y) + ">>"
+#         if counter == 0:
+#             print "BASE CASE"
+#             working_elem += curr_char
+#             x_last = x
+#             y_last = y
+#             print "working: " + working_elem
+#         elif y == y_last and 1.2*(x_last + w_last) >=  x:
+#             print "SECOND CASE"
+#             working_elem += curr_char
+#             x_last = x
+#             y_last = y
+#             print "working: " + working_elem
+#         elif y == y_last:
+#             print "THIRD CASE"
+#             working_line += working_elem + " "
+#             working_elem = ""
+#             working_elem += curr_char
+#         elif y != y_last:
+#             print "FOURTH CASE"
+#             matrix_string += working_line + "; "
+#             working_line = ""
+#         # counter += 1
+#         x_last, y_last, w_last, h_last = ungrouped[0]
+#
+#
+#     # print str(curr_char)
+#     # matrix_string += str(curr_char)
+#
+#     # if num.isdigit() and counter > 1:
+#     #     print "reaches"
+#     #     if counter != 0 and y >= y_last + 65:
+#     #         matrix_string += "; " + str(num) + " "
+#     #         print num
+#     #         num = ""
+#     #     elif counter == 0 or 1.2*(x_last + w_last) <  x:
+#     #         matrix_string += str(num) + " "
+#     #         print num
+#     #         num = ""
+#     # else:
+#     #     matrix_string += str(num)
+#
+#     # x_last, y_last, w_last, h_last = ungrouped[0]
+#     counter += 1
+#     # curr_char = ""
+#     subprocess.call('rm output.txt', shell=True)
+#     # if entered is True:
+# #         ungrouped.append((x_last,y_last,w_last,h_last))
+# #         entered = False
+#     ungrouped.pop(0)
+#
+# print "left bounds: " + str(left_bounds)
+# print "right bounds: " + str(right_bounds)
+# print "mtrx: "  + matrix_string
 
 # # CROPPING NOTE: its img[y: y + h, x: x + w]
 # # segment = im[233:275, 103:164]
@@ -179,6 +262,7 @@ print "mtrx: "  + matrix_string
 # # cv2.imwrite("bounded_sample.png",im)
 #
 # key = cv2.waitKey(0)
+
 
 
 if cv2.waitKey(1) & 0xFF == ord("q"):  # (escape to quit)
