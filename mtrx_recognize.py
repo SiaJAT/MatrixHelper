@@ -28,10 +28,68 @@ def get_char((x,y,w,h)):
     return curr_char
     
 
-def rectify_lines(unrectified):
+def rectify_rows(arr):
+    x_lag, y_lag, w_lag, h_lag = arr[0]
+    start = 0
+    curr = 0
+    curr_group = []
+    left_bound = []
+    right_bound = []
+    
+    def smooth(arr, start, curr_group):
+        mode = int(stats.mode(curr_group)[0][0])
+        # print "mode: " + str(mode)
+        # print "start: " + str(start) + ", curr: "+ str(curr)
+        for i in range(start, curr):
+            arr[i][1] = mode
+            # print "curr x: " + str(i)
+            # print "ARR: " + str(arr)
+        start = curr
+
+        curr_group = []
+        curr_group.append(y)
+        return (curr, curr_group)
+    
+    for a in arr:
+        # print str(x_lag) + " " + str(y_lag) + " " +str(w_lag) + " " +str(h_lag)
+        x,y,w,h = a
+        # determine group members
+        # print str(y-y_lag)
+        if abs(y-y_lag) <= 5:
+            curr_group.append(y)
+        else:
+            # print curr_group
+            # smooth group height (for sorting purposes)
+            start,curr_group = smooth(arr,start,curr_group)
+            x_lag, y_lag, w_lag, h_lag = a
+        
+        
+        curr += 1
+        x_lag, y_lag, w_lag, h_lag = a
+        
+    if curr_group:
+        smooth(arr, start, curr_group)
+    
+    return arr
     
 
-
+# def numpify_string(master_list):
+#     x_last, y_last, w_last, h_last = -1,-1,-1,-1
+#     curr_char = ''
+#     curr_elem = ""
+#     curr_line = ""
+#     curr_matrix_string
+#
+#     numpified_master_list = []
+#     curr_matrix_string = ""
+#
+#     for sublist in master_list:
+#         for char_tup in sublist:
+#             if x_last == -1:
+#                 working_elem += curr_char
+#                 x_last = x
+#                 y_last = y
+#             elif x > x_last and y == y_last:
 
 im = cv2.imread(str(sys.argv[1]).strip())
 im3 = im.copy()
@@ -75,29 +133,13 @@ right_bound = []
 '''
 Old sorting code
 '''
-for b in braces:
-    # print str(x_lag) + " " + str(y_lag) + " " +str(w_lag) + " " +str(h_lag)
-    x,y,w,h = b
-    # determine group members
-    if start > -1:
-        if abs(y-y_lag) <= 5:
-            curr_group.append(y)
-        else:
-            # smooth group height (for sorting purposes)
-            mode = int(stats.mode(curr_group)[0][0])
-            # print "mode: " + str(mode)
-            # print "start: " + str(start) + ", curr: "+ str(curr)
-            for i in range(start, curr):
-                braces[i][1] = mode
-            start = curr
 
-            curr_group = []
-            curr_group.append(y)
-
-    curr += 1
-    x_lag, y_lag, w_lag, h_lag = b
 
 # Rectify the braces and dteremine the character
+braces = rectify_rows(braces)
+print "RECTUM: " + str(braces)
+
+
 braces = sorted(braces, key=lambda x : (x[1], x[0]))
 print "\n<braces> post rect\n"
 for b in braces:
@@ -132,15 +174,28 @@ pic_counter = 0
 
 entered = False
 
-left_bounds = [(x,y,w,h,c) for (x,y,w,h,c) in braces if c is ']']
-right_bounds = [(x,y,w,h,c) for (x,y,w,h,c) in braces if c is '[']
+master_list = []
+curr_group = []
 
-if lef
-
-
+left_bounds = [(x,y,w,h,c) for (x,y,w,h,c) in braces if c is '[']
+right_bounds = [(x,y,w,h,c) for (x,y,w,h,c) in braces if c is ']']
 
 x_l, y_l = -1,-1
 x_r, y_r = -1,-1
+
+
+while left_bounds and right_bounds:
+    x_l,_,_,_,_ = left_bounds[0]
+    x_r,_,_,_,_ = right_bounds[0]
+    
+    curr_group = [(x,y,w,h,c) for (x,y,w,h,c) in braces if c in "0123456789" and x_l < x < x_r]
+    
+    master_list.append(curr_group)
+    
+    left_bounds.pop(0)
+    right_bounds.pop(0)
+
+print master_list
 
 print left_bounds
 print right_bounds
