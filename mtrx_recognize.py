@@ -10,6 +10,8 @@ import operator as op
 import subprocess
 import Queue
 
+# global pic_counter = 0
+
 def get_char((x,y,w,h)):
     curr_segment = im[y: y+h, x: x+w]
     pic_counter = 0
@@ -73,23 +75,53 @@ def rectify_rows(arr):
     return arr
     
 
-# def numpify_string(master_list):
-#     x_last, y_last, w_last, h_last = -1,-1,-1,-1
-#     curr_char = ''
-#     curr_elem = ""
-#     curr_line = ""
-#     curr_matrix_string
-#
-#     numpified_master_list = []
-#     curr_matrix_string = ""
-#
-#     for sublist in master_list:
-#         for char_tup in sublist:
-#             if x_last == -1:
-#                 working_elem += curr_char
-#                 x_last = x
-#                 y_last = y
-#             elif x > x_last and y == y_last:
+def numpify_string(master_list):
+    x_last, y_last, w_last, h_last = -1,-1,-1,-1
+    curr_char = ''
+    curr_elem = ""
+    curr_line = ""
+    curr_matrix_string = ""
+
+    numpified_master_list = []
+    curr_matrix_string = ""
+
+    for sublist in master_list:
+        for char_tup in sublist:
+            x,y,w,h,curr_char = char_tup
+            # print curr_char
+            if x_last == -1:
+                print "first character"
+                curr_elem += curr_char
+            elif x > 1.025*(x_last + w_last) and y == y_last:
+                print "SAME LINE, NEW ELEM"
+                curr_line += curr_elem + " "
+                curr_elem = ""
+                curr_elem += curr_char
+            elif x <= 1.025*(x_last + w_last) and y == y_last:
+                print "SAME LINE, SAME ELEM"
+                curr_elem += curr_char
+            else:
+                print "NEW LINE"
+                curr_line += curr_elem + "; "
+                curr_elem = ""
+                curr_elem += curr_char
+
+
+            x_last, y_last, w_last, h_last = x,y,w,h
+                
+        if curr_elem:
+            curr_line += curr_elem
+            curr_matrix_string += curr_line     
+        
+        numpified_master_list.append(curr_matrix_string)
+        x_last, y_last, w_last, h_last = -1,-1,-1,-1
+        curr_char = ''
+        curr_elem = ""
+        curr_line = ""
+        curr_matrix_string = ""
+        
+    return numpified_master_list
+    
 
 im = cv2.imread(str(sys.argv[1]).strip())
 im3 = im.copy()
@@ -105,24 +137,24 @@ for cnt in contours:
     contours_dims.append((cnt,w,h))
 
 contours_dims = sorted(contours_dims, key=lambda x : (-cv2.contourArea(x[0]),-x[1],-x[2]))
-for cnt in contours_dims:
-    print str(cv2.contourArea(cnt[0])) + " " + str(cnt[1]) + " " + str(cnt[2]) 
+# for cnt in contours_dims:
+    # print str(cv2.contourArea(cnt[0])) + " " + str(cnt[1]) + " " + str(cnt[2])
 
 
 braces = []
 for x in range(0, len(contours)):
     x,y,w,h = cv2.boundingRect(contours_dims[x][0])
     braces.append([x,y,w,h])
-    print str(x) + " " +  str(y)
+    # print str(x) + " " +  str(y)
     # if y>200 and y <220:
     # cv2.rectangle(im,(x,y),(x+w,y+h),(0,0,255),2)
 
 braces = sorted(braces, key=lambda x : (x[1], x[0]))
 
-print "\n<braces>\n"
-for b in braces:
-    # if b[1]>200 and b[1]<220:
-    print b
+# print "\n<braces>\n"
+# for b in braces:
+#     # if b[1]>200 and b[1]<220:
+#     print b
 
 x_lag, y_lag, w_lag, h_lag = braces[0]
 start = 0
@@ -137,7 +169,6 @@ Old sorting code
 
 # Rectify the braces and dteremine the character
 braces = rectify_rows(braces)
-print "RECTUM: " + str(braces)
 
 
 braces = sorted(braces, key=lambda x : (x[1], x[0]))
@@ -195,8 +226,13 @@ while left_bounds and right_bounds:
     left_bounds.pop(0)
     right_bounds.pop(0)
 
-print master_list
+for l in master_list:
+    print "\n"
+    for e in l:
+        print e
 
+master = numpify_string(master_list)
+print master
 print left_bounds
 print right_bounds
 
